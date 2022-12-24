@@ -61,9 +61,6 @@ final class CalendarManager {
     
     init() {
         updateCalendar()
-        print("monthRange --> ", monthRange(from: Date()))
-        print("startDateOfMonth --> ", startDateOfMonth(from: calendarDate))
-        print(Date())
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             self.updateDate()
         }
