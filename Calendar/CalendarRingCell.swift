@@ -8,9 +8,9 @@
 import UIKit
 import SnapKit
 
-final class CalendarDateComponent: UICollectionViewCell {
+final class CalendarRingCell: UICollectionViewCell {
     
-    static let identifier = "AIMCareMSKCalendarRing"
+    static let identifier = "CalendarRingCell"
     
     private let ringBaseView: UIView = {
         let view = UIView()
@@ -68,16 +68,18 @@ final class CalendarDateComponent: UICollectionViewCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        if ringBaseView.frame != .zero {
-            drawInsideRing()
-            drawOutsideRing()
-        }
+//        if ringBaseView.frame != .zero {
+//            drawInsideRing()
+//            drawOutsideRing()
+//        }
     }
     
     override func prepareForReuse() {
         super.prepareForReuse()
         insideRingLayer.sublayers?.forEach { $0.removeFromSuperlayer() }
         outsideRingLayer.sublayers?.forEach { $0.removeFromSuperlayer() }
+        dateLabelBackgroundView.isHidden = true
+        dateLabel.textColor = .black
     }
     
     // MARK: - Method
@@ -85,8 +87,8 @@ final class CalendarDateComponent: UICollectionViewCell {
         dateLabel.text = date
         self.insidePercentage = insidePercentage
         self.outsidePercentage = outsidePercentage
-//        insideRingLayer.sublayers?.forEach { $0.removeFromSuperlayer() }
-//        outsideRingLayer.sublayers?.forEach { $0.removeFromSuperlayer() }
+        drawInsideRing()
+        drawOutsideRing()
     }
     
     func select(isSelect: Bool) {
@@ -116,12 +118,12 @@ final class CalendarDateComponent: UICollectionViewCell {
     }
     
     private func drawInsideRing() {
-        insideRingLayer.sublayers?.forEach { $0.removeFromSuperlayer() }
+        insideRingPath.removeAllPoints()
         
-        let center = CGPoint(x: ringBaseView.frame.width / 2, y: ringBaseView.frame.height / 2)
-        let radius = CGFloat(ringBaseView.frame.width / 2 - 13)
-//        let center = CGPoint(x: 23, y: 23)
-//        let radius = CGFloat(23 - 13)
+//        let center = CGPoint(x: ringBaseView.frame.width / 2, y: ringBaseView.frame.height / 2)
+//        let radius = CGFloat(ringBaseView.frame.width / 2 - 13)
+        let center = CGPoint(x: 23, y: 23)
+        let radius = CGFloat(23 - 13)
         
         insideRingPath.addArc(
             withCenter: center,
@@ -150,11 +152,12 @@ final class CalendarDateComponent: UICollectionViewCell {
     }
     
     private func drawOutsideRing() {
-        outsideRingLayer.sublayers?.forEach { $0.removeFromSuperlayer() }
-        let center = CGPoint(x: ringBaseView.frame.width / 2, y: ringBaseView.frame.height / 2)
-        let radius = CGFloat(ringBaseView.frame.width / 2 - 5)
-//        let center = CGPoint(x: 23, y: 23)
-//        let radius = CGFloat(23 - 5)
+        outsideRingPath.removeAllPoints()
+        
+//        let center = CGPoint(x: ringBaseView.frame.width / 2, y: ringBaseView.frame.height / 2)
+//        let radius = CGFloat(ringBaseView.frame.width / 2 - 5)
+        let center = CGPoint(x: 23, y: 23)
+        let radius = CGFloat(23 - 5)
 
         outsideRingPath.addArc(
             withCenter: center,

@@ -95,6 +95,13 @@ final class CalendarManager {
         return components
     }
     
+    func dateCount() -> Int {
+        let startDateOfTheWeek = startDateOfMonth(from: calendarDate)
+        let currentEndDate = monthRange(from: calendarDate)
+        
+        return startDateOfTheWeek + currentEndDate
+    }
+    
     private func updateDate() {
         let startDateOfTheWeek = startDateOfMonth(from: calendarDate)
         let currentEndDate = monthRange(from: calendarDate)

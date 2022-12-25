@@ -13,29 +13,35 @@ class ViewController: UIViewController {
     private lazy var collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: dateCellLayout())
         collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.showsVerticalScrollIndicator = false
         
         collectionView.register(
-            CalendarDateComponent.self,
-            forCellWithReuseIdentifier: CalendarDateComponent.identifier
+            CalendarRingCell.self,
+            forCellWithReuseIdentifier: CalendarRingCell.identifier
         )
         
         return collectionView
     }()
     
-    let cm = CalendarManager()
+    let vm = CalendarViewModel()
+    
+    private var sectionCount = 5
+    
     var subscription = Set<AnyCancellable>()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        
+        binding()
         setSubViews()
-        
-        cm.updateDatePublisher
-            .sink { [weak self] c in
-                print(c.date)
+    }
+    
+    private func binding() {
+        vm.updateCollectionViewPublisher
+            .sink { [weak self] in
+                self?.collectionView.reloadData()
             }.store(in: &subscription)
-        
     }
     
     private func setSubViews() {
@@ -65,27 +71,67 @@ class ViewController: UIViewController {
         
         return UICollectionViewCompositionalLayout(section: section)
     }
+    
+    var aa = false
 
 }
 
 extension ViewController: UICollectionViewDataSource {
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return sectionCount
+    }
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 42
+        return vm.component.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: CalendarDateComponent.identifier,
+            withReuseIdentifier: CalendarRingCell.identifier,
             for: indexPath
-        ) as? CalendarDateComponent else {
+        ) as? CalendarRingCell else {
             return UICollectionViewCell()
         }
         
-        cell.configureView(date: "1", insidePercentage: 0.3, outsidePercentage: 0.2)
+        let day = vm.component[indexPath.row].day
+        cell.configureView(date: day, insidePercentage: 0.3, outsidePercentage: 0.2)
         if indexPath.row == 4 {
             cell.select(isSelect: true)
         }
         
         return cell
+    }
+}
+
+extension ViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if collectionView.contentOffset.y > collectionView.contentSize.height - collectionView.bounds.size.height {
+            sectionCount += 1
+            collectionView.reloadData()
+        } else if collectionView.contentOffset.y < 0 {
+            if !aa {
+                print("🧐", collectionView.contentOffset.y)
+                sectionCount += 1
+                print("🧐sectionCount", sectionCount)
+                collectionView.reloadData()
+                print("🧐before offset y", collectionView.contentOffset.y)
+                
+                
+                let scrollOffset = scrollView.contentSize.height - scrollView.contentOffset.y
+                
+                print("🧐scrollOffset", scrollOffset)
+                
+                // 438은 현재 section의 height
+                // TODO: - 추후 섹션높이 구하는 메서드 추가해야함
+                scrollView.contentOffset = CGPoint(x: scrollView.contentOffset.x, y: 438)
+                
+                print("🧐after offset y", scrollView.contentOffset.y)
+                print("🧐---")
+            }
+        }
     }
 }
