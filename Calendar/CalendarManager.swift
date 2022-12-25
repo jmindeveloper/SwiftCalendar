@@ -55,8 +55,11 @@ final class CalendarManager {
     
     private let calendar = Calendar.current
     private var calendarDate = Date()
-    private var currentCalendarMonthDate = Date()
     private var selectedCalendarDate = Date()
+    
+    private var minusCalendarMonth = Date()
+    private var plusCalendarMonth = Date()
+    
     let updateDatePublisher = PassthroughSubject<[CalendarDateComponents], Never>()
     
     init() {
@@ -66,7 +69,6 @@ final class CalendarManager {
     func updateCalendar() {
         let date = calendar.component(.day, from: calendarDate) - 1
         calendarDate = calendar.date(byAdding: DateComponents(day: -date), to: calendarDate) ?? Date()
-        currentCalendarMonthDate = calendarDate
     }
     
     private func startDateOfMonth(from date: Date) -> Int {
@@ -113,7 +115,16 @@ final class CalendarManager {
     }
     
     func plusMonth() {
-        calendarDate = calendar.date(byAdding: DateComponents(month: 1), to: currentCalendarMonthDate) ?? Date()
+        calendarDate = calendar.date(byAdding: DateComponents(month: 1), to: plusCalendarMonth) ?? Date()
+        plusCalendarMonth = calendarDate
+        
+        updateCalendar()
+        updateDate()
+    }
+    
+    func minusMonth() {
+        calendarDate = calendar.date(byAdding: DateComponents(month: -1), to: minusCalendarMonth) ?? Date()
+        minusCalendarMonth = calendarDate
         
         updateCalendar()
         updateDate()

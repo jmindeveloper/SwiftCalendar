@@ -32,6 +32,15 @@ class ViewController: UIViewController {
     
     let vm = CalendarViewModel()
     
+    private var isCanPlusMonth = true
+    private var beforeCollectionViewHeight = CGFloat.zero {
+        didSet {
+            if oldValue != beforeCollectionViewHeight {
+                isCanPlusMonth = true
+            }
+        }
+    }
+    
     private var sectionCount = 5
     
     var subscription = Set<AnyCancellable>()
@@ -46,7 +55,11 @@ class ViewController: UIViewController {
     private func binding() {
         vm.updateCollectionViewPublisher
             .sink { [weak self] in
-                self?.collectionView.reloadData()
+                guard let self = self else { return }
+                self.collectionView.reloadData()
+                if let attributes = self.collectionView.collectionViewLayout.layoutAttributesForSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, at: IndexPath(item: 0, section: 2)) {
+                    self.collectionView.setContentOffset(CGPoint(x: 0, y: attributes.frame.origin.y - self.collectionView.contentInset.top), animated: false)
+                }
             }.store(in: &subscription)
     }
     
@@ -94,9 +107,6 @@ class ViewController: UIViewController {
         
         return header
     }
-    
-    var aa = false
-
 }
 
 extension ViewController: UICollectionViewDataSource {
@@ -141,37 +151,38 @@ extension ViewController: UICollectionViewDataSource {
 }
 
 extension ViewController: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if collectionView.contentOffset.y > collectionView.contentSize.height - collectionView.bounds.size.height - 438 {
+            beforeCollectionViewHeight = collectionView.contentSize.height
+            if isCanPlusMonth {
+                isCanPlusMonth = false
+                vm.addPlushMonth()
+                collectionView.reloadData()
+            }
+        } else if collectionView.contentOffset.y < 438 {
+            print("🧐", collectionView.contentOffset.y)
+            vm.addMinusMonth()
+            collectionView.reloadData()
+            print("🧐before offset y", collectionView.contentOffset.y)
+            
+            
+            let scrollOffset = collectionView.contentSize.height - collectionView.contentOffset.y
+            
+            print("🧐scrollOffset", scrollOffset)
+            
+            // 438은 현재 section의 height
+            // TODO: - 추후 섹션높이 구하는 메서드 추가해야함
+            collectionView.contentOffset = CGPoint(
+                x: collectionView.contentOffset.x,
+                y: collectionView.contentSize.height - scrollOffset + 438)
+            
+            print("🧐after offset y", scrollView.contentOffset.y)
+            print("🧐---")
+        }
     }
     
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if collectionView.contentOffset.y > collectionView.contentSize.height - collectionView.bounds.size.height {
-            vm.addPlushMonth()
-            collectionView.reloadData()
-        } else if collectionView.contentOffset.y < 0 {
-            if !aa {
-                print("🧐", collectionView.contentOffset.y)
-                sectionCount += 1
-                print("🧐sectionCount", sectionCount)
-                collectionView.reloadData()
-                print("🧐before offset y", collectionView.contentOffset.y)
-                
-                
-                let scrollOffset = scrollView.contentSize.height - scrollView.contentOffset.y
-                
-                print("🧐scrollOffset", scrollOffset)
-                
-                // 438은 현재 section의 height
-                // TODO: - 추후 섹션높이 구하는 메서드 추가해야함
-                scrollView.contentOffset = CGPoint(
-                    x: scrollView.contentOffset.x,
-                    y: scrollView.contentSize.height - scrollOffset + 438)
-                
-                print("🧐after offset y", scrollView.contentOffset.y)
-                print("🧐---")
-            }
-        }
+    func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool {
+        return false
     }
 }
 

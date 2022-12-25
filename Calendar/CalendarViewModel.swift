@@ -14,27 +14,43 @@ final class CalendarViewModel {
     
     private var subscriptions = Set<AnyCancellable>()
     
+    private var isPlusMonth = true
+    
     let updateCollectionViewPublisher = PassthroughSubject<Void, Never>()
     
     init() {
         calendarManager.updateCalendar()
         binding()
         calendarManager.updateDate()
+        addMinusMonth()
+        addMinusMonth()
+        addPlushMonth()
+        addPlushMonth()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.updateCollectionViewPublisher.send()
+        }
     }
     
     func binding() {
         calendarManager.updateDatePublisher
             .sink { [weak self] dates in
-                self?.component.append(dates)
-                self?.updateCollectionViewPublisher.send()
+                if self?.isPlusMonth == true {
+                    self?.component.append(dates)
+                } else {
+                    self?.component.insert(dates, at: 0)
+                }
             }.store(in: &subscriptions)
     }
     
     func addPlushMonth() {
+        isPlusMonth = true
         calendarManager.plusMonth()
+//        updateCollectionViewPublisher.send()
     }
     
     func addMinusMonth() {
-        
+        isPlusMonth = false
+        calendarManager.minusMonth()
+//        updateCollectionViewPublisher.send()
     }
 }
