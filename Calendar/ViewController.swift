@@ -101,11 +101,11 @@ class ViewController: UIViewController {
 
 extension ViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return sectionCount
+        return vm.component.count
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return vm.component.count
+        return vm.component[section].count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -116,7 +116,7 @@ extension ViewController: UICollectionViewDataSource {
             return UICollectionViewCell()
         }
         
-        let day = vm.component[indexPath.row].day
+        let day = vm.component[indexPath.section][indexPath.row].day
         cell.configureView(date: day, insidePercentage: 0.3, outsidePercentage: 0.2)
         if indexPath.row == 4 {
             cell.select(isSelect: true)
@@ -130,7 +130,8 @@ extension ViewController: UICollectionViewDataSource {
             guard let header = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: CalendarHeader.identifier, for: indexPath) as? CalendarHeader else {
                 return UICollectionReusableView()
             }
-            header.setLabel(text: "2022년 12월")
+            let date = vm.component[indexPath.section][12].year + "년" +  vm.component[indexPath.section][12].month + "월"
+            header.setLabel(text: date)
             
             return header
         } else {
@@ -146,7 +147,7 @@ extension ViewController: UICollectionViewDelegate {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if collectionView.contentOffset.y > collectionView.contentSize.height - collectionView.bounds.size.height {
-            sectionCount += 1
+            vm.addPlushMonth()
             collectionView.reloadData()
         } else if collectionView.contentOffset.y < 0 {
             if !aa {

@@ -9,7 +9,7 @@ import UIKit
 import Combine
 
 final class CalendarViewModel {
-    var component = [CalendarDateComponents]()
+    var component = [[CalendarDateComponents]]()
     let calendarManager = CalendarManager()
     
     private var subscriptions = Set<AnyCancellable>()
@@ -17,19 +17,24 @@ final class CalendarViewModel {
     let updateCollectionViewPublisher = PassthroughSubject<Void, Never>()
     
     init() {
+        calendarManager.updateCalendar()
         binding()
+        calendarManager.updateDate()
     }
     
     func binding() {
         calendarManager.updateDatePublisher
-            .map {
-                print($0.date)
-                return $0
-            }
-            .collect(calendarManager.dateCount())
             .sink { [weak self] dates in
-                self?.component = dates
+                self?.component.append(dates)
                 self?.updateCollectionViewPublisher.send()
             }.store(in: &subscriptions)
+    }
+    
+    func addPlushMonth() {
+        calendarManager.plusMonth()
+    }
+    
+    func addMinusMonth() {
+        
     }
 }

@@ -57,13 +57,10 @@ final class CalendarManager {
     private var calendarDate = Date()
     private var currentCalendarMonthDate = Date()
     private var selectedCalendarDate = Date()
-    let updateDatePublisher = PassthroughSubject<CalendarDateComponents, Never>()
+    let updateDatePublisher = PassthroughSubject<[CalendarDateComponents], Never>()
     
     init() {
-        updateCalendar()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.updateDate()
-        }
+        
     }
     
     func updateCalendar() {
@@ -102,17 +99,25 @@ final class CalendarManager {
         return startDateOfTheWeek + currentEndDate
     }
     
-    private func updateDate() {
+    func updateDate() {
         let startDateOfTheWeek = startDateOfMonth(from: calendarDate)
         let currentEndDate = monthRange(from: calendarDate)
         calendarDate = calendar.date(byAdding: DateComponents(day: -startDateOfTheWeek), to: calendarDate) ?? Date()
         
+        var components = [CalendarDateComponents]()
         for _ in 0..<currentEndDate + startDateOfTheWeek {
-            updateDatePublisher.send(createCalendarCellComponents(color: .darkGray, date: calendarDate, isCurrentMonth: true))
+            components.append(createCalendarCellComponents(color: .darkGray, date: calendarDate, isCurrentMonth: true))
             calendarDate = calendar.date(byAdding: DateComponents(day: 1), to: calendarDate) ?? Date()
         }
+        updateDatePublisher.send(components)
     }
     
+    func plusMonth() {
+        calendarDate = calendar.date(byAdding: DateComponents(month: 1), to: currentCalendarMonthDate) ?? Date()
+        
+        updateCalendar()
+        updateDate()
+    }
 }
 
 extension String {
