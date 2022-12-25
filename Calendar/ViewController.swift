@@ -21,6 +21,12 @@ class ViewController: UIViewController {
             forCellWithReuseIdentifier: CalendarRingCell.identifier
         )
         
+        collectionView.register(
+            CalendarHeader.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+            withReuseIdentifier: CalendarHeader.identifier
+        )
+        
         return collectionView
     }()
     
@@ -68,8 +74,25 @@ class ViewController: UIViewController {
         
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = .init(top: 0, leading: 16, bottom: 0, trailing: 16)
+        section.boundarySupplementaryItems = [header()]
         
         return UICollectionViewCompositionalLayout(section: section)
+    }
+    
+    func header() -> NSCollectionLayoutBoundarySupplementaryItem {
+        let headerSize: NSCollectionLayoutSize = .init(
+            widthDimension: .fractionalWidth(1),
+            heightDimension: .estimated(65)
+        )
+        
+        let header = NSCollectionLayoutBoundarySupplementaryItem(
+            layoutSize: headerSize,
+            elementKind: UICollectionView.elementKindSectionHeader,
+            alignment: .top
+        )
+        header.contentInsets = .init(top: 0, leading: 16, bottom: 0, trailing: 16)
+        
+        return header
     }
     
     var aa = false
@@ -101,6 +124,19 @@ extension ViewController: UICollectionViewDataSource {
         
         return cell
     }
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        if kind == UICollectionView.elementKindSectionHeader {
+            guard let header = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: CalendarHeader.identifier, for: indexPath) as? CalendarHeader else {
+                return UICollectionReusableView()
+            }
+            header.setLabel(text: "2022년 12월")
+            
+            return header
+        } else {
+            return UICollectionReusableView()
+        }
+    }
 }
 
 extension ViewController: UICollectionViewDelegate {
@@ -127,11 +163,43 @@ extension ViewController: UICollectionViewDelegate {
                 
                 // 438은 현재 section의 height
                 // TODO: - 추후 섹션높이 구하는 메서드 추가해야함
-                scrollView.contentOffset = CGPoint(x: scrollView.contentOffset.x, y: 438)
+                scrollView.contentOffset = CGPoint(
+                    x: scrollView.contentOffset.x,
+                    y: scrollView.contentSize.height - scrollOffset + 438)
                 
                 print("🧐after offset y", scrollView.contentOffset.y)
                 print("🧐---")
             }
         }
+    }
+}
+
+final class CalendarHeader: UICollectionReusableView {
+    
+    static let identifier = "CalendarHeader"
+    
+    private let label: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 16, weight: .bold)
+        
+        return label
+    }()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        addSubview(label)
+        
+        label.snp.makeConstraints {
+            $0.top.bottom.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview()
+        }
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    func setLabel(text: String) {
+        self.label.text = text
     }
 }
